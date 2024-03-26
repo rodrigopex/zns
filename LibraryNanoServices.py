@@ -5,8 +5,16 @@ Run the command `python -m robot.libdoc LibraryNanoServices LibraryNanoServices.
 library available on the robotframework_lsp.
 """
 
+import logging
 import google.protobuf.text_format as text_format
 import serial
+
+import os
+import sys
+sys.path.append(
+    f"{os.environ['ZEPHYR_BASE']}/../modules/lib/nanopb/generator/proto")
+
+logger = logging.getLogger(__name__)
 
 
 class LibraryNanoServices(object):
@@ -29,8 +37,10 @@ class LibraryNanoServices(object):
         if services is None:
             return
 
-        import os
         import subprocess
+        subprocess.run(f"protoc -I{os.environ['ZEPHYR_BASE']}/../modules/lib/nanopb/generator/proto/ --python_out=build nanopb.proto",
+                       shell=True, check=True).returncode
+
         for service_name in services:
             service_py_file_path = os.path.join(
                 "build", services_proto_path, f"{service_name}_pb2.py")
@@ -39,9 +49,6 @@ class LibraryNanoServices(object):
             if not os.path.exists(service_py_file_path):
                 subprocess.run(f"protoc -I{os.environ['ZEPHYR_BASE']}/../modules/lib/nanopb/generator/proto -I. --python_out=build {service_proto_file_path}",
                                shell=True, check=True).returncode
-        import sys
-        sys.path.append(
-            f"{os.environ['ZEPHYR_BASE']}/../modules/lib/nanopb/generator/proto")
 
     def cleanup(self):
         self.__serial.close()
@@ -68,8 +75,9 @@ class LibraryNanoServices(object):
         service_name_title = "".join(x.title()
                                      for x in service_name.lower().split("_"))
 
-        cmd_message_class = getattr(service, f"{service_name_title}CmdMsg")
-        rsp_message_class = getattr(service, f"{service_name_title}RspMsg")
+        serv_class = getattr(service, service_name_title)
+        cmd_message_class = getattr(serv_class, "CmdMsg")
+        rsp_message_class = getattr(serv_class, "RspMsg")
 
         print(kwargs)
 
@@ -78,9 +86,17 @@ class LibraryNanoServices(object):
         print(f"Encoded cmd data: {encoded_message}")
         self.__serial.write(f"{service_name}_cmd {encoded_message}\n".encode())
 
+        data = self.__serial.read_until(expected=b'<')
         data = self.__serial.read_until(expected=b'uart:~$')
-        data = self.__serial.read_until(expected=b'uart:~$')
-        data = data.rstrip().split()[1].decode("ascii")
+        data = data.strip()
+
+        data_list = data.split()
+
+        if len(data_list) < 2:
+            raise AssertionError(
+                "No responses from the command. Check the command message.")
+
+        data = data_list[1].decode("ascii")
 
         rsp_msg = rsp_message_class()
         rsp_msg.ParseFromString(bytes.fromhex(data))
@@ -116,18 +132,26 @@ class LibraryNanoServices(object):
         service_name_title = "".join(x.title()
                                      for x in service_name.lower().split("_"))
 
-        evt_message_class = getattr(service, f"{service_name_title}EvtMsg")
+        serv_class = getattr(service, service_name_title)
+        evt_message_class = getattr(serv_class, "EvtMsg")
 
         print(kwargs)
 
         data = self.__serial.read_until(expected=b'@')
         data = self.__serial.read_until(expected=b'uart:~$')
+        data = data.strip()
 
         if data == b'':
             raise AssertionError(
                 f"Timeout! No event from {service_name_title} service received.")
 
-        data = data.rstrip().split()[1].decode("ascii")
+        data_list = data.strip().split()
+
+        if len(data_list) < 2:
+            raise AssertionError(
+                "No responses from the command. Check the command message.")
+
+        data = data_list[1].decode("ascii")
 
         evt_msg = evt_message_class()
         evt_msg.ParseFromString(bytes.fromhex(data))

@@ -23,7 +23,7 @@
 		char data_string[SERVICE##_RSP_MSG_SIZE * 2 + 1] = {0};                            \
 		bin2hex(buffer, stream.bytes_written, data_string,                                 \
 			SERVICE##_RSP_MSG_SIZE * 2 + 1);                                           \
-		shell_print(sh_uart, "@%s %s", zbus_chan_name(chan), data_string);                 \
+		shell_print(sh_uart, "<%s %s", zbus_chan_name(chan), data_string);                 \
 	}                                                                                          \
 	ZBUS_LISTENER_DEFINE(lis_dump_##service##_rsp, dump_listener_callback_##service##_rsp);    \
 	ZBUS_CHAN_ADD_OBS(chan_##service##_rsp, lis_dump_##service##_rsp, 3)
