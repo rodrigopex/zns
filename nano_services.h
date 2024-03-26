@@ -1,8 +1,8 @@
 #include <zephyr/shell/shell.h>
-#include <pb_decode.h>
-#include <pb_encode.h>
 #include <zephyr/shell/shell_backend.h>
 #include <zephyr/sys/util.h>
+#include <pb_decode.h>
+#include <pb_encode.h>
 
 #define NANO_SERVICE_SHELL_INIT()                                                                  \
 	static const struct shell *sh_uart;                                                        \
@@ -16,13 +16,13 @@
 #define NANO_SERVICE_RSP_DUMP(service, SERVICE)                                                    \
 	static void dump_listener_callback_##service##_rsp(const struct zbus_channel *chan)        \
 	{                                                                                          \
-		uint8_t buffer[MSG_##SERVICE##_RSP_SIZE];                                          \
-		pb_ostream_t stream = pb_ostream_from_buffer(buffer, MSG_##SERVICE##_RSP_SIZE);    \
-		const struct msg_##service##_rsp *serv = zbus_chan_const_msg(chan);                \
-		pb_encode(&stream, MSG_##SERVICE##_RSP_FIELDS, serv);                              \
-		char data_string[MSG_##SERVICE##_RSP_SIZE * 2 + 1] = {0};                          \
+		uint8_t buffer[SERVICE##_RSP_MSG_SIZE];                                            \
+		pb_ostream_t stream = pb_ostream_from_buffer(buffer, SERVICE##_RSP_MSG_SIZE);      \
+		const struct service##_rsp_msg *serv = zbus_chan_const_msg(chan);                  \
+		pb_encode(&stream, SERVICE##_RSP_MSG_FIELDS, serv);                                \
+		char data_string[SERVICE##_RSP_MSG_SIZE * 2 + 1] = {0};                            \
 		bin2hex(buffer, stream.bytes_written, data_string,                                 \
-			MSG_##SERVICE##_RSP_SIZE * 2 + 1);                                         \
+			SERVICE##_RSP_MSG_SIZE * 2 + 1);                                           \
 		shell_print(sh_uart, "@%s %s", zbus_chan_name(chan), data_string);                 \
 	}                                                                                          \
 	ZBUS_LISTENER_DEFINE(lis_dump_##service##_rsp, dump_listener_callback_##service##_rsp);    \
@@ -31,13 +31,13 @@
 #define NANO_SERVICE_EVT_DUMP(service, SERVICE)                                                    \
 	static void dump_listener_callback_##service##_evt(const struct zbus_channel *chan)        \
 	{                                                                                          \
-		uint8_t buffer[MSG_##SERVICE##_EVT_SIZE];                                          \
-		pb_ostream_t stream = pb_ostream_from_buffer(buffer, MSG_##SERVICE##_EVT_SIZE);    \
-		const struct msg_##service##_evt *serv = zbus_chan_const_msg(chan);                \
-		pb_encode(&stream, MSG_##SERVICE##_EVT_FIELDS, serv);                              \
-		char data_string[MSG_##SERVICE##_EVT_SIZE * 2 + 1] = {0};                          \
+		uint8_t buffer[SERVICE##_EVT_MSG_SIZE];                                            \
+		pb_ostream_t stream = pb_ostream_from_buffer(buffer, SERVICE##_EVT_MSG_SIZE);      \
+		const struct service##_evt_msg *serv = zbus_chan_const_msg(chan);                  \
+		pb_encode(&stream, SERVICE##_EVT_MSG_FIELDS, serv);                                \
+		char data_string[SERVICE##_EVT_MSG_SIZE * 2 + 1] = {0};                            \
 		bin2hex(buffer, stream.bytes_written, data_string,                                 \
-			MSG_##SERVICE##_EVT_SIZE * 2 + 1);                                         \
+			SERVICE##_EVT_MSG_SIZE * 2 + 1);                                           \
 		printk("@%s %s\n", zbus_chan_name(chan), data_string);                             \
 	}                                                                                          \
 	ZBUS_LISTENER_DEFINE(lis_dump_##service##_evt, dump_listener_callback_##service##_evt);    \
@@ -51,8 +51,8 @@
 		uint8_t buffer[128] = {0};                                                         \
 		size_t binary_length = hex2bin(hex_string, strlen(hex_string), buffer, 128);       \
 		pb_istream_t stream = pb_istream_from_buffer(buffer, binary_length);               \
-		struct msg_##service##_cmd cmd = MSG_##SERVICE##_CMD_INIT_DEFAULT;                 \
-		bool status = pb_decode(&stream, MSG_##SERVICE##_CMD_FIELDS, &cmd);                \
+		struct service##_cmd_msg cmd = SERVICE##_CMD_MSG_INIT_DEFAULT;                     \
+		bool status = pb_decode(&stream, SERVICE##_CMD_MSG_FIELDS, &cmd);                  \
 		if (status) {                                                                      \
 			int err = zbus_chan_pub(&chan_##service##_cmd, &cmd, K_MSEC(500));         \
 			if (err) {                                                                 \

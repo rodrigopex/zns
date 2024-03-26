@@ -68,8 +68,8 @@ class LibraryNanoServices(object):
         service_name_title = "".join(x.title()
                                      for x in service_name.lower().split("_"))
 
-        cmd_message_class = getattr(service, f"Msg{service_name_title}Cmd")
-        rsp_message_class = getattr(service, f"Msg{service_name_title}Rsp")
+        cmd_message_class = getattr(service, f"{service_name_title}CmdMsg")
+        rsp_message_class = getattr(service, f"{service_name_title}RspMsg")
 
         print(kwargs)
 
@@ -116,7 +116,7 @@ class LibraryNanoServices(object):
         service_name_title = "".join(x.title()
                                      for x in service_name.lower().split("_"))
 
-        evt_message_class = getattr(service, f"Msg{service_name_title}Evt")
+        evt_message_class = getattr(service, f"{service_name_title}EvtMsg")
 
         print(kwargs)
 

@@ -10,8 +10,8 @@ ZBUS_CHAN_DECLARE(chan_@service@_evt);
 /* Compound literals constructors for the messages
  * For reference: https://gcc.gnu.org/onlinedocs/gcc/Compound-Literals.html */
 
-#define MSG_@SERVICE_UPPER@_CMD(_val, ...) ((struct msg_@service@_cmd[]){{_val, ##__VA_ARGS__}})
+#define MSG_@SERVICE_UPPER@_CMD(_val, ...) ((struct @service@_cmd_msg[]){{_val, ##__VA_ARGS__}})
 
-#define MSG_@SERVICE_UPPER@_RSP(_val, ...) ((struct msg_@service@_rsp[]){{_val, ##__VA_ARGS__}})
+#define MSG_@SERVICE_UPPER@_RSP(_val, ...) ((struct @service@_rsp_msg[]){{_val, ##__VA_ARGS__}})
 
-#define MSG_@SERVICE_UPPER@_EVT(_val, ...) ((struct msg_@service@_evt[]){{_val, ##__VA_ARGS__}})
+#define MSG_@SERVICE_UPPER@_EVT(_val, ...) ((struct @service@_evt_msg[]){{_val, ##__VA_ARGS__}})
