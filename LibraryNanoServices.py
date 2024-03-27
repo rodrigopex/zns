@@ -53,8 +53,7 @@ class LibraryNanoServices(object):
     def cleanup(self):
         self.__serial.close()
 
-    def service_execute_command(self, service_name: str, **kwargs):
-
+    def __load_service(self, service_name):
         from importlib import util
 
         spec = util.spec_from_file_location(
@@ -71,6 +70,28 @@ class LibraryNanoServices(object):
                 f"Could not import {service_name}_pb2.py file.")
 
         spec.loader.exec_module(service)
+
+        return service
+
+    def service_execute_command(self, service_name: str, **kwargs):
+
+        # from importlib import util
+        #
+        # spec = util.spec_from_file_location(
+        #     f"{service_name}_pb2", f"./build/nano_services/{service_name}_pb2.py")
+        #
+        # if spec is None:
+        #     raise AssertionError(
+        #         f"Python protobuf message file {service_name}_pb2.py does not exist.")
+        #
+        # service = util.module_from_spec(spec)
+        #
+        # if service is None or spec.loader is None:
+        #     raise AssertionError(
+        #         f"Could not import {service_name}_pb2.py file.")
+        #
+        # spec.loader.exec_module(service)
+        service = self.__load_service(service_name)
 
         service_name_title = "".join(x.title()
                                      for x in service_name.lower().split("_"))
@@ -112,22 +133,7 @@ class LibraryNanoServices(object):
         return True
 
     def service_wait_for_event(self, service_name: str, **kwargs):
-        from importlib import util
-
-        spec = util.spec_from_file_location(
-            f"{service_name}_pb2", f"./build/nano_services/{service_name}_pb2.py")
-
-        if spec is None:
-            raise AssertionError(
-                f"Python protobuf message file {service_name}_pb2.py does not exist.")
-
-        service = util.module_from_spec(spec)
-
-        if service is None or spec.loader is None:
-            raise AssertionError(
-                f"Could not import {service_name}_pb2.py file.")
-
-        spec.loader.exec_module(service)
+        service = self.__load_service(service_name)
 
         service_name_title = "".join(x.title()
                                      for x in service_name.lower().split("_"))
