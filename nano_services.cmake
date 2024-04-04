@@ -7,6 +7,7 @@ set(CMAKE_NANO_SERVICE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/.zns")
 
 include_directories(${CMAKE_NANO_SERVICE_MODULE_PATH})
 include_directories(${CMAKE_CURRENT_BINARY_DIR}/nano_services)
+include_directories(${CMAKE_CURRENT_BINARY_DIR}/src/nano_services)
 
 function(nano_service_include_proto target)
   foreach(service_proto_file IN LISTS ARGN)
